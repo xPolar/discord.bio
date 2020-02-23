@@ -232,6 +232,38 @@ class Other(commands.Cog):
                 color = Config.MAINCOLOR
         )
         await ctx.send(embed = embed)
+    
+    @commands.command()
+    async def invite(self, ctx):
+        """
+        View all of the links related to the bot.
+        """
+        embed = discord.Embed(
+                title = "Invites",
+                description = "[`Invite Me`](https://discordapp.com/api/oauth2/authorize?client_id=680334403876159488&permissions=378944&scope=bot)\n[`Join the official discord.bio server`](https://discord.gg/bio)\n[`Look at my source code`](https://github.com/xPolar/discord.bio)",
+                color = Config.MAINCOLOR
+        )
+        await ctx.send(embed = embed)
+    
+    @commands.command(aliases = ["latency"])
+    async def ping(self, ctx):
+        """
+        View the bot's current latency
+        """
+        embed = discord.Embed(
+                title = "Pinging",
+                description = "Pinging...",
+                color = Config.MAINCOLOR
+        )
+        t1 = time.perf_counter()
+        msg = await ctx.send(embed = embed)
+        t2 = time.perf_counter()
+        embed = discord.Embed(
+            title = "🚀 Ping",
+            description = f"API latency is {round((t2 - t1) * 1000)}ms\nHost latency is {round(self.bot.latency * 1000, 2)}ms",
+            color = Config.MAINCOLOR
+        )
+        await msg.edit(embed = embed)
 
 def setup(bot):
     bot.add_cog(Other(bot))
