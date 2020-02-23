@@ -2,9 +2,9 @@
 Repository for the unofficial [discord.bio](https://discord.bio) bot by [Polar](https://discord.bio/polar).
 
 ## Table of contents
-- [Important Links]()
-- [Commands]()
-- [Self Hosting]()
+- [Important Links](https://github.com/xPolar/discord.bio/tree/master#important-links)
+- [Commands](https://github.com/xPolar/discord.bio/tree/master#commands)
+- [Self Hosting](https://github.com/xPolar/discord.bio/tree/master#self-hosting)
 
 ### Important Links
 - [Invite the bot](https://discordapp.com/api/oauth2/authorize?client_id=680334403876159488&permissions=378944&scope=bot)
