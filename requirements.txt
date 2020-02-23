@@ -1,0 +1,4 @@
+aiohttp
+discord.py
+dnspython
+pymongo
