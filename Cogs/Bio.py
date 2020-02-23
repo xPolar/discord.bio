@@ -19,8 +19,8 @@ class Bio(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
     
-    @commands.command()
-    async def profile(self, ctx, profile = None):
+    @commands.command(aliases = ["check"])
+    async def profile(self, ctx, *, profile = None):
         """
         View a user's profile.
         """
@@ -34,7 +34,23 @@ class Bio(commands.Cog):
                     if data1["success"] != False:
                         data1 = data1
                     else:
-                        data1 = None
+                        if ctx.guild != None:
+                            profile2 = discord.utils.get(ctx.guild.members, name = profile)
+                            if profile2 == None:
+                                profile2 = discord.utils.get(ctx.guild.members, id = int(profile[3:-1]))
+                                if profile2 == None:
+                                    profile2 = discord.utils.get(ctx.guild.members, name = profile[:-5])
+                            if profile2 == None:
+                                data1 = None
+                            else:
+                                async with session.get(f"https://api.discord.bio/v1/userDetails/{profile2.id}") as resp1:
+                                    if resp1.status == 200:
+                                        data1 = await resp1.text()
+                                        data1 = json.loads(data1)
+                                        if data1["success"] != False:
+                                            data1 = data1
+                                        else:
+                                            data1 = None
                 else:
                     data1 = None
             async with session.get(f"https://api.discord.bio/v1/userConnections/{profile}") as resp2:
@@ -62,77 +78,77 @@ class Bio(commands.Cog):
                 await ctx.send(embed = embed)
         else:
             embed = discord.Embed(
-                    title = "Slug: " + data1["settings"]["name"],
-                    url = f"https://discord.bio/p/{data1['settings']['name']}",
+                    title = "Slug: " + data1["payload"]["settings"]["name"],
+                    url = f"https://discord.bio/p/{data1['payload']['settings']['name']}",
                     color = Config.MAINCOLOR
             )
             embed.set_author(name = "Profile")
             async with aiohttp.ClientSession() as session:
-                id = data1["discord"]["id"]
-                name = data1["discord"]["avatar"]
+                id = data1["payload"]["discord"]["id"]
+                name = data1["payload"]["discord"]["avatar"]
                 async with session.get(f"https://cdn.discordapp.com/avatars/{id}/{name}.gif") as resp4:
                     if resp4.status == 200:
                         embed.set_thumbnail(url = f"https://cdn.discordapp.com/avatars/{id}/{name}.gif")
                     if resp4.status == 415:
                         embed.set_thumbnail(url = f"https://cdn.discordapp.com/avatars/{id}/{name}")
-            if data1["settings"]["status"] == None:
+            if data1["payload"]["settings"]["status"] == None:
                 embed.add_field(name = "☁️ Status", value = "No status set.")
             else:
-                embed.add_field(name = "☁️ Status", value = data1["settings"]["status"])
-            if data1["settings"]["description"] == None:
+                embed.add_field(name = "☁️ Status", value = data1["payload"]["settings"]["status"])
+            if data1["payload"]["settings"]["description"] == None:
                 embed.add_field(name = "✏️ Description", value = "No descrption set.")
             else:
-                embed.add_field(name = "✏️ Description", value = data1["settings"]["description"], inline = False)
-            if data1["settings"]["email"] != None:
-                embed.add_field(name = "📧 Email", value = data1["settings"]["email"], inline = False)
+                embed.add_field(name = "✏️ Description", value = data1["payload"]["settings"]["description"], inline = False)
+            if data1["payload"]["settings"]["email"] != None:
+                embed.add_field(name = "📧 Email", value = data1["payload"]["settings"]["email"], inline = False)
             badges = ""
-            if data1["settings"]["verified"] == 1:
+            if data1["payload"]["settings"]["verified"] == 1:
                 badges = badges + "[<:verified:680351714301575178>](https://discordbio.typeform.com/to/DtEvyx)"
-            if data1["settings"]["premium_status"] == 1:
+            if data1["payload"]["settings"]["premium_status"] == 1:
                 badges = badges + "[💎](https://discord.bio/plans)"
-            if data1["settings"]["name"] == "polar":
+            if data1["payload"]["settings"]["name"] == "polar":
                 badges = badges + "[<a:polar:680353468510109705>](https://discord.bio/p/polar)"
-            if data1["settings"]["name"] == "v":
+            if data1["payload"]["settings"]["name"] == "v":
                 badges = badges + "[<:ven:680352094149935235>](https://discord.bio/p/v)"
-            if data1["settings"]["name"] == "princess":
-                badges = badges + "[<:ravy:680353379008249878>](https://discord.bio/p/princess)"
+            if data1["payload"]["settings"]["name"] == "princess":
+                badges = badges + "[<a:ravy:681215926145646767>](https://discord.bio/p/princess)"
             if badges != "":
                 embed.add_field(name = "Badges", value = badges)
-            if data1["settings"]["location"] != None:
-                embed.add_field(name = "🗺️ Location", value = data1["settings"]["location"])
-            if data1["settings"]["birthday"] != None:
-                date = data1["settings"]["birthday"]
+            if data1["payload"]["settings"]["location"] != None:
+                embed.add_field(name = "🗺️ Location", value = data1["payload"]["settings"]["location"])
+            if data1["payload"]["settings"]["birthday"] != None:
+                date = data1["payload"]["settings"]["birthday"]
                 date = datetime.datetime.strptime(date[:10], "%Y-%M-%d").strftime("%B %d, %Y")
                 if datetime.datetime.utcnow().strftime("%B %d, %Y") == date:
                     date = f"**🎉 {date}**"
                 embed.add_field(name = "🎂 Birthday", value = date)
-            if data1["settings"]["occupation"] != None:
-                embed.add_field(name = "💼 Occupation", value = data1["settings"]["occupation"])
-            if data1["settings"]["banner"] != None:
-                if data1["settings"]["premium_status"] == 1:
-                    embed.set_image(url = data1["settings"]["banner"])
-            embed.add_field(name = "<:upvote:680349321727705113> Upvotes", value = str(data1["settings"]["upvotes"]))
-            if data1["settings"]["gender"] != None:
-                if data1["settings"]["gender"] == 1:
+            if data1["payload"]["settings"]["occupation"] != None:
+                embed.add_field(name = "💼 Occupation", value = data1["payload"]["settings"]["occupation"])
+            if data1["payload"]["settings"]["banner"] != None:
+                if data1["payload"]["settings"]["premium_status"] == 1:
+                    embed.set_image(url = data1["payload"]["settings"]["banner"])
+            embed.add_field(name = "<:upvote:680349321727705113> Upvotes", value = str(data1["payload"]["settings"]["upvotes"]))
+            if data1["payload"]["settings"]["gender"] != None:
+                if data1["payload"]["settings"]["gender"] == 1:
                     gender = "Male"
-                if data1["settings"]["gender"] == 2:
+                if data1["payload"]["settings"]["gender"] == 2:
                     gender = "Female"
                 embed.add_field(name = "Gender", value = gender)
             connections = ""
-            if data2["github"]["name"] != None:
-                name = data2["github"]["name"]
+            if data2["payload"]["github"]["name"] != None:
+                name = data2["payload"]["github"]["name"]
                 connections = connections + f"[<:github:680572757020639243>](https://github.com/{name})"
-            if data2["website"]["name"] != None:
-                url = data2["website"]["name"]
+            if data2["payload"]["website"]["name"] != None:
+                url = data2["payload"]["website"]["name"]
                 connections = connections + f"[🌐]({url})"
-            if data2["instagram"]["name"] != None:
-                name = data2["instagram"]["name"]
+            if data2["payload"]["instagram"]["name"] != None:
+                name = data2["payload"]["instagram"]["name"]
                 connections = connections + f"[<:instagram:680574384662118451>](https://www.instagram.com/{name})"
-            if data2["snapchat"]["name"] != None:
-                name = data2["snapchat"]["name"]
+            if data2["payload"]["snapchat"]["name"] != None:
+                name = data2["payload"]["snapchat"]["name"]
                 connections = connections + f"[<:snapchat:680574977095106635>](https://www.snapchat.com/add/{name})"
-            if data2["linkedin"]["name"] != None:
-                name = data2["linkedin"]["name"]
+            if data2["payload"]["linkedin"]["name"] != None:
+                name = data2["payload"]["linkedin"]["name"]
                 connections = connections + f"[<:linkedin:680576207171223577>](www.linkedin.com/in/{name})"
             if connections != "":
                 embed.add_field(name = "Connections", value = connections)
@@ -140,7 +156,7 @@ class Bio(commands.Cog):
                 pass
             else:
                 discord_connections = ""
-                for connection in data3:
+                for connection in data3["payload"]:
                     if connection["url"] != None:
                         if connection["connection_type"] == "reddit":
                             url = connection["url"]
@@ -189,7 +205,7 @@ class Bio(commands.Cog):
         embed.set_footer(text = "This bot is not part of discord.bio or Discord, but rather an application based around both.")
         number = 1
         for profile in data:
-            embed.add_field(name = f"Number {number}", value = f"[{profile['user']['name'].title()}](https://discord.bio/p/{profile['user']['name']})")
+            embed.add_field(name = f"Number {number}", value = f"[{profile['user']['name'].title()}](https://discord.bio/p/{profile['user']['name']}) with {profile['user']['upvotes']} Upvotes")
             number += 1
         await ctx.send(embed = embed)
         

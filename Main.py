@@ -1,9 +1,11 @@
 # Imports
 import asyncio
 import datetime
+import json
 import logging
 import random
 
+import aiohttp
 import discord
 import pymongo
 from discord.ext import commands
@@ -96,9 +98,21 @@ async def on_ready():
     # Loop for status
     loop = True
     while loop == True:
-        statuses = ["being developed by Polar!"]
-        await bot.change_presence(activity = discord.Game(random.choice(statuses)))
-        await asyncio.sleep(600)
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f"https://api.discord.bio/v1/totalUsers") as resp:
+                if resp.status == 200:
+                    data = await resp.text()
+                    data = json.loads(data)
+                    if data["success"] == True:
+                        data = data
+                    else:
+                        data = None
+                else:
+                    data = None
+        if data != None:
+            statuses = [f"with {data['payload']} profiles on discord.bio."]
+            await bot.change_presence(activity = discord.Game(random.choice(statuses)))
+            await asyncio.sleep(300)
 
 # Starts bot
 bot.run(Config.TOKEN)

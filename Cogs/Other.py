@@ -166,6 +166,72 @@ class Other(commands.Cog):
 
         def cog_unload(self):
             self.bot.help_command = self.old_help_command
+    
+    @commands.group()
+    async def prefix(self, ctx):
+        """
+        View or edit the prefix for the server your in.
+        """
+        if ctx.invoked_subcommand == None:
+            if ctx.guild is None:
+                prefix = Config.PREFIX
+            else:
+                prefix = Config.CLUSTER["servers"]["prefixes"].find_one({"_id": ctx.guild.id})
+                if prefix == None:
+                    prefix = Config.PREFIX
+                else:
+                    prefix = prefix["prefix"]
+            embed = discord.Embed(
+                    title = "Prefix",
+                    description = f"My prefix for {ctx.guild.name} is `{prefix}`",
+                    color = Config.MAINCOLOR
+            )
+            await ctx.send(embed = embed)
+
+    @prefix.command()
+    @commands.has_permissions(manage_guild = True)
+    async def set(self, ctx, new_prefix = None):
+        """
+        Set what the new prefix for the server should be.
+        """
+        if new_prefix == None:
+            embed = discord.Embed(
+                    title = "Error",
+                    description = "Please specify what you would like to set the prefix to!",
+                    color = Config.ERRORCOLOR
+            )
+            await ctx.send(embed = embed)
+        else:
+            if new_prefix.lower() == "reset":
+                Config.CLUSTER["servers"]["prefixes"].delete_one({"_id": ctx.guild.id})
+                embed = discord.Embed(
+                        title = "Prefix Reset",
+                        description = f"My new prefix for {ctx.guild.name} is `{Config.PREFIX}`",
+                        color = Config.MAINCOLOR
+                )
+                await ctx.send(embed = embed)
+            else:
+                Config.CLUSTER["servers"]["prefixes"].update_one({"_id": ctx.guild.id}, {"$set": {"prefix": new_prefix}}, upsert = True)
+                embed = discord.Embed(
+                        title = "Prefix Set",
+                        description = f"My new prefix for {ctx.guild.name} is `{new_prefix}`",
+                        color = Config.MAINCOLOR
+                )
+                await ctx.send(embed = embed)
+        
+    @prefix.command()
+    @commands.has_permissions(manage_guild = True)
+    async def reset(self, ctx):
+        """
+        Reset the prefix so it gets set to the default.
+        """
+        Config.CLUSTER["servers"]["prefixes"].delete_one({"_id": ctx.guild.id})
+        embed = discord.Embed(
+                title = "Prefix Reset",
+                description = f"My new prefix for {ctx.guild.name} is `{Config.PREFIX}`",
+                color = Config.MAINCOLOR
+        )
+        await ctx.send(embed = embed)
 
 def setup(bot):
     bot.add_cog(Other(bot))
