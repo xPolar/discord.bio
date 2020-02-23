@@ -1,5 +1,5 @@
 # discord.bio
-Repository for the unofficial discord.bio bot.
+Repository for the unofficial [discord.bio](https://discord.bio) bot by [Polar](https://discord.bio/polar).
 
 ## Table of contents
 - [Important Links]()
